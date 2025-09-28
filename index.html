@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClinicAI - Assistente de Triagem</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-container { width: 400px; height: 600px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: white; display: flex; flex-direction: column; }
+        .chat-header { background: #25d366; color: white; padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; font-weight: 500; }
+        .chat-window { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; }
+        .message { max-width: 80%; padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; line-height: 1.4; word-wrap: break-word; }
+        .user-message { background-color: #dcf8c6; align-self: flex-end; }
+        .bot-message { background-color: #e9e9eb; align-self: flex-start; }
+        .input-area { display: flex; padding: 10px; border-top: 1px solid #ddd; }
+        #userInput { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 15px; outline: none; font-size: 14px; }
+        #sendButton { background: #25d366; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; margin-left: 10px; cursor: pointer; font-size: 18px; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">ClinicAI</div>
+        <div class="chat-window" id="chatWindow">
+            </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Digite sua mensagem..." autocomplete="off">
+            <button id="sendButton">→</button>
+        </div>
+    </div>
+
+    <script>
+        const chatWindow = document.getElementById('chatWindow');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        
+        const SENDER_ID = "local_user_123";
+
+        
+        function markdownToHtml(text) {
+
+            return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        }
+
+        // Função para adicionar mensagem na tela
+        function addMessageToChat(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+            
+
+            const formattedText = markdownToHtml(text);
+            messageElement.innerHTML = formattedText;
+            
+            chatWindow.appendChild(messageElement);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // Função principal para enviar a mensagem para a API
+        async function handleSendMessage() {
+            const messageText = userInput.value.trim();
+            if (messageText === '') return;
+
+            addMessageToChat(messageText, 'user');
+            userInput.value = '';
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sender_id: SENDER_ID,
+                        message: messageText
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro na API: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                addMessageToChat(data.response, 'bot');
+
+            } catch (error) {
+                console.error("Não foi possível conectar ao backend:", error);
+                addMessageToChat("Desculpe, não consegui me conectar ao meu cérebro. Verifique se o servidor Python está rodando.", 'bot');
+            }
+        }
+
+        // Event Listeners
+        sendButton.addEventListener('click', handleSendMessage);
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                handleSendMessage();
+            }
+        });
+
+        // Adiciona a mensagem de boas-vindas inicial
+        addMessageToChat("Olá! Sou a assistente virtual da **ClinicAI**. Meu objetivo é coletar algumas informações para agilizar sua consulta. É importante lembrar que **não substituo** a avaliação de um profissional de saúde. Qual o motivo do seu contato hoje?", 'bot');
+
+    </script>
+</body>
+</html>

@@ -15,7 +15,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage, AI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, END
 
-# 1. chamando a API KEY
+# chamando a API KEY
 load_dotenv()
 if os.getenv("GOOGLE_API_KEY") is None:
     print("Erro: A chave de API do Google não foi encontrada.")
@@ -152,7 +152,7 @@ def process_chat_message(request: ChatRequest):
     
     # se for a primeira mensagem, envia a saudação inicial
     if not current_history:
-        initial_message = AIMessage(content="Olá! Sou a assistente virtual da ClinicAI. Meu objetivo é coletar algumas informações para agilizar sua consulta. É importante lembrar que não substituo a avaliação de um profissional de saúde. Qual o motivo do seu contato hoje?")
+        initial_message = AIMessage(content="Olá! Sou a assistente virtual da **ClinicAI**. Meu objetivo é coletar algumas informações para agilizar sua consulta. É importante lembrar que **não substituo** a avaliação de um profissional de saúde. Qual o motivo do seu contato hoje?")
         # salva a mensagem inicial no banco de dados
         conversations_collection.insert_one({
             "sender_id": sender_id,
